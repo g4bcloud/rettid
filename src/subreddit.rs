@@ -1,7 +1,8 @@
 #![allow(clippy::cmp_owned)]
 
 use crate::utils::{
-	Post, Preferences, Subreddit, catch_random, error, filter_posts, format_num, format_url, get_filters, info, nsfw_landing, param, redirect, rewrite_urls, setting, template, to_absolute_url, val
+	catch_random, error, filter_posts, format_num, format_url, get_filters, info, nsfw_landing, param, redirect, rewrite_urls, setting, template, to_absolute_url, val, Post,
+	Preferences, Subreddit,
 };
 use crate::{client::json, server::RequestExt, server::ResponseExt};
 use crate::{config, utils};
@@ -12,7 +13,7 @@ use hyper::{Body, Request, Response};
 
 use chrono::DateTime;
 use regex::Regex;
-use rss::{ChannelBuilder, Item, Enclosure};
+use rss::{ChannelBuilder, Enclosure, Item};
 use std::sync::LazyLock;
 use time::{Duration, OffsetDateTime};
 
@@ -648,6 +649,33 @@ pub async fn rss(req: Request<Body>) -> Result<Response<Body>, String> {
 	Ok(res)
 }
 
+/// Export current subscriptions as a plain text file (one subreddit per line).
+/// This allows users to backup or transfer their local subscription list.
+pub async fn export_subscriptions(req: Request<Body>) -> Result<Response<Body>, String> {
+	let preferences = Preferences::new(&req);
+	let subscriptions = preferences.subscriptions;
+
+	let body = if subscriptions.is_empty() {
+		String::from("# No subscriptions yet\n# Subscribe to subreddits and export again to get your list.\n")
+	} else {
+		let mut content = String::from("# Rettid Subscriptions\n# One subreddit per line. Import this file on another device or instance.\n\n");
+		for sub in subscriptions {
+			content.push_str(&sub);
+			content.push('\n');
+		}
+		content
+	};
+
+	let res = Response::builder()
+		.status(200)
+		.header("Content-Type", "text/plain; charset=utf-8")
+		.header("Content-Disposition", "attachment; filename=\"rettid-subscriptions.txt\"")
+		.body(body.into())
+		.map_err(|e| e.to_string())?;
+
+	Ok(res)
+}
+
 // Set enclosure image for RSS feed item
 fn apply_enclosure(item: &mut Item, post: &Post) {
 	item.set_enclosure(get_rss_image(&post));
@@ -655,23 +683,13 @@ fn apply_enclosure(item: &mut Item, post: &Post) {
 	// Embed the number of gallery images in description and content since
 	// only the first image in the gallery is used for the enclosure
 	if post.post_type == "gallery" && post.gallery.len() > 1 {
-		item.set_description(
-			format!("<a href='{}'>Gallery with {} images</a>",
-				to_absolute_url(&post.permalink),
-				post.gallery.len()
-			)
-		);
+		item.set_description(format!("<a href='{}'>Gallery with {} images</a>", to_absolute_url(&post.permalink), post.gallery.len()));
 
 		if let Some(content) = item.content() {
-			let new_content = format!(
-				"{}<br/>{}",
-				item.description().unwrap_or(""),
-				content,
-			);
+			let new_content = format!("{}<br/>{}", item.description().unwrap_or(""), content,);
 			item.set_content(new_content);
 		}
 	}
-
 }
 
 fn get_rss_image(post: &Post) -> Option<Enclosure> {
@@ -694,25 +712,21 @@ fn get_rss_image(post: &Post) -> Option<Enclosure> {
 /// Determines the MIME type based on file extension in a URL.
 /// Handles both absolute and relative URLs with query parameters.
 fn get_mime_type(url: &str) -> &'static str {
-    // Extract the path component, removing query parameters
-    let path = url.split('?').next().unwrap_or(url);
-    
-    // Get the file extension (everything after the last dot)
-    let extension = path
-        .rsplit('.')
-        .next()
-        .unwrap_or("")
-        .to_lowercase();
-    
-    // Match common image extensions
-    match extension.as_str() {
-        "jpg" | "jpeg" => "image/jpeg",
-        "png" => "image/png",
-        "gif" => "image/gif",
-        "webp" => "image/webp",
-        "svg" => "image/svg+xml",
-        _ => "application/octet-stream",
-    }
+	// Extract the path component, removing query parameters
+	let path = url.split('?').next().unwrap_or(url);
+
+	// Get the file extension (everything after the last dot)
+	let extension = path.rsplit('.').next().unwrap_or("").to_lowercase();
+
+	// Match common image extensions
+	match extension.as_str() {
+		"jpg" | "jpeg" => "image/jpeg",
+		"png" => "image/png",
+		"gif" => "image/gif",
+		"webp" => "image/webp",
+		"svg" => "image/svg+xml",
+		_ => "application/octet-stream",
+	}
 }
 
 #[cfg(test)]
