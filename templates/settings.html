@@ -211,9 +211,20 @@
 		                    <button class="import" type="submit">Import</button>
 		                </form>
 
-		                <br />
-		                <a href="/subscriptions/export" class="export-subs">Export subscriptions (plain text)</a>
-		                <span class="export-note">Downloads one subreddit per line. Useful for moving to another device or instance.</span>
+		<br />
+		<script src="/subscription-import.js"></script>
+		<div id="subscription_transfer">
+			<form action="/subscriptions/export" method="GET">
+				<button class="subscribe export-subs" type="submit">Export subscriptions</button>
+			</form>
+			<form action="/subscriptions/import" method="POST">
+				<label for="subscription_file">Subscription file</label>
+				<input id="subscription_file" type="file" accept="text/plain,.txt">
+				<input id="subscription_text" type="hidden" name="subscriptions">
+				<button id="import_subscriptions" class="import" type="submit" disabled>Import subscriptions</button>
+			</form>
+			<span class="export</button>-note">The file contains one subreddit per line. Importing merges its entries with your current subscriptions.</span>
+		</div>
 		            </div>
 	</div>
 </div>
