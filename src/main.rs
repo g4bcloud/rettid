@@ -40,6 +40,33 @@ async fn iphone_logo() -> Result<Response<Body>, String> {
 	)
 }
 
+/// Serves the navbar wordmark used by `base.html`.
+///
+/// These are embedded like the other static images: without a route the
+/// `<img>` elements 404 and the browser falls back to rendering their `alt`
+/// text, which is why the navbar showed a plain "Rettid" label.
+async fn rettid_logo_black() -> Result<Response<Body>, String> {
+	Ok(
+		Response::builder()
+			.status(200)
+			.header("content-type", "image/png")
+			.header("Cache-Control", "public, max-age=1209600, s-maxage=86400")
+			.body(include_bytes!("../static/rettid-logo-black.png").as_ref().into())
+			.unwrap_or_default(),
+	)
+}
+
+async fn rettid_logo_white() -> Result<Response<Body>, String> {
+	Ok(
+		Response::builder()
+			.status(200)
+			.header("content-type", "image/png")
+			.header("Cache-Control", "public, max-age=1209600, s-maxage=86400")
+			.body(include_bytes!("../static/rettid-logo-white.png").as_ref().into())
+			.unwrap_or_default(),
+	)
+}
+
 async fn favicon() -> Result<Response<Body>, String> {
 	Ok(
 		Response::builder()
@@ -273,6 +300,8 @@ async fn main() {
 	});
 	app.at("/favicon.ico").get(|_| favicon().boxed());
 	app.at("/logo.png").get(|_| pwa_logo().boxed());
+	app.at("/rettid-logo-black.png").get(|_| rettid_logo_black().boxed());
+	app.at("/rettid-logo-white.png").get(|_| rettid_logo_white().boxed());
 	app.at("/Inter.var.woff2").get(|_| font().boxed());
 	app.at("/touch-icon-iphone.png").get(|_| iphone_logo().boxed());
 	app.at("/apple-touch-icon.png").get(|_| iphone_logo().boxed());
@@ -353,6 +382,9 @@ async fn main() {
 	app.at("/r/:sub/unsubscribe").post(|r| subreddit::subscriptions_filters(r).boxed());
 	app.at("/r/:sub/filter").post(|r| subreddit::subscriptions_filters(r).boxed());
 	app.at("/r/:sub/unfilter").post(|r| subreddit::subscriptions_filters(r).boxed());
+
+	// Export subscriptions (local profile)
+	app.at("/subscriptions/export").get(|r| subreddit::export_subscriptions(r).boxed());
 
 	app.at("/r/:sub/comments/:id").get(|r| post::item(r).boxed());
 	app.at("/r/:sub/comments/:id/:title").get(|r| post::item(r).boxed());
