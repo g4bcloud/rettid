@@ -1013,6 +1013,26 @@ body.voyager #sub_icon {
 	object-fit: cover;
 }
 
+body.voyager #community_subscription {
+	margin: 0 0 10px;
+	padding: 0 calc(var(--v-gutter) + var(--v-safe-right)) 0
+		calc(var(--v-gutter) + var(--v-safe-left));
+}
+
+body.voyager #subscription_transfer {
+	display: grid;
+	gap: 10px;
+}
+
+body.voyager #subscription_transfer form {
+	display: grid;
+	gap: 10px;
+}
+
+body.voyager #subscription_file {
+	max-width: 100%;
+}
+
 body.voyager .subscribe,
 body.voyager .unsubscribe,
 body.voyager .filter,

@@ -319,6 +319,9 @@ async fn main() {
 		.at("/check_update.js")
 		.get(|_| resource(include_str!("../static/check_update.js"), "text/javascript", false).boxed());
 	app.at("/copy.js").get(|_| resource(include_str!("../static/copy.js"), "text/javascript", false).boxed());
+	app
+		.at("/subscription-import.js")
+		.get(|_| resource(include_str!("../static/subscription-import.js"), "text/javascript", false).boxed());
 
 	// Read-only Reddit JSON API for the JavaScript frontend.
 	// Opt-in via REDLIB_ENABLE_JSON_API=on; see src/api.rs.
@@ -383,8 +386,9 @@ async fn main() {
 	app.at("/r/:sub/filter").post(|r| subreddit::subscriptions_filters(r).boxed());
 	app.at("/r/:sub/unfilter").post(|r| subreddit::subscriptions_filters(r).boxed());
 
-	// Export subscriptions (local profile)
+	// Subscription transfer (local profile)
 	app.at("/subscriptions/export").get(|r| subreddit::export_subscriptions(r).boxed());
+	app.at("/subscriptions/import").post(|r| subreddit::import_subscriptions(r).boxed());
 
 	app.at("/r/:sub/comments/:id").get(|r| post::item(r).boxed());
 	app.at("/r/:sub/comments/:id/:title").get(|r| post::item(r).boxed());

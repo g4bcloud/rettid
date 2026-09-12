@@ -66,6 +66,12 @@
 				{% endif %}
 			</form>
 
+			{% if !sub.name.is_empty() && sub.name != "all" && sub.name != "popular" && !sub.name.contains("+") %}
+			<form id="community_subscription" action="/r/{{ sub.name }}/{% if prefs.subscriptions.contains(sub.name) %}unsubscribe{% else %}subscribe{% endif %}?redirect={{ redirect_url }}" method="POST">
+				<button class="{% if prefs.subscriptions.contains(sub.name) %}unsubscribe{% else %}subscribe{% endif %}">{% if prefs.subscriptions.contains(sub.name) %}Unsubscribe{% else %}Subscribe{% endif %}</button>
+			</form>
+			{% endif %}
+
 			{% if sub.name.contains("+") %}
 				<form action="/r/{{ sub.name }}/subscribe?redirect={{ redirect_url }}" method="POST">
 					<button id="multisub" class="subscribe" title="Subscribe to each sub in this multireddit">Subscribe to Multireddit</button>

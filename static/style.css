@@ -597,6 +597,34 @@ aside {
     margin-bottom: 20px;
 }
 
+#community_subscription {
+    margin-bottom: 20px;
+}
+
+#subscription_transfer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+#subscription_transfer form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+#subscription_transfer .export-subs {
+    display: inline-block;
+    text-decoration: none;
+    margin: 0;
+}
+
+#subscription_transfer .export-note {
+    flex-basis: 100%;
+}
+
 .subscribe,
 .unsubscribe,
 .filter,
